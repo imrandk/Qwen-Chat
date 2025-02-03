@@ -1,0 +1,37 @@
+async function fetchPrompts() {
+    try {
+        const res = await fetch('https://raw.githubusercontent.com/imrandk/Prompt-Lit/main/Prompt%20List');
+        if (!res.ok) throw new Error();
+        return (await res.text()).split('\n').filter(line => line.trim());
+    } catch {
+        return [];
+    }
+}
+
+async function setRandomPrompt() {
+    const textarea = document.querySelector('textarea#chat-input');
+    if (!textarea) return;
+
+    const prompts = await fetchPrompts();
+    if (!prompts.length) return;
+
+    textarea.value = prompts[Math.floor(Math.random() * prompts.length)].replace(/^Prompt:\s*/, '');
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+    setTimeout(() => document.querySelector('button#send-message-button')?.click(), 1000);
+    setTimeout(findAndClickOtherButton, 2000);
+}
+
+function findAndClickOtherButton() {
+    const intervalId = setInterval(() => {
+        const button = document.querySelector('.flex-raw > .flex:nth-child(1) > .visible');
+        if (button) {
+            button.click();
+            clearInterval(intervalId);
+            setTimeout(setRandomPrompt, 1000);
+        }
+    }, 1000);
+}
+
+setInterval(() => console.clear(), 10000);
+setRandomPrompt();
